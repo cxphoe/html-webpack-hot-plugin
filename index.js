@@ -66,28 +66,26 @@ module.exports = class HtmlWebpackHotPlugin {
     addClientEntry(compiler) {
         const clientEntry = 'html-webpack-hot-plugin/lib/client'
         const { entry } = compiler.options
-        let newEntrys
-        if (typeof entry === 'string') {
-            newEntrys = [
-                clientEntry,
-                entry,
-            ]
-        } else if (Array.isArray(entry)) {
-            newEntrys = [
-                clientEntry,
-                ...entry,
-            ]
-        } else {
-            newEntrys = {}
-            Object.keys(entry).forEach((entryName) => {
-                newEntrys[entryName] = [
+        const addEntry = (entry) => {
+            if (typeof entry === 'string') {
+                return [
                     clientEntry,
-                    ...entry[entryName],
+                    entry,
                 ]
-            })
+            } else if (Array.isArray(entry)) {
+                return [
+                    clientEntry,
+                    ...entry,
+                ]
+            } else {
+                const newEntrys = {}
+                Object.keys(entry).forEach((entryName) => {
+                    newEntrys[entryName] = addEntry(entry[entryName])
+                })
+                return newEntrys
+            }
         }
-
-        compiler.options.entry = newEntrys
+        compiler.options.entry = addEntry(entry)
     }
 
     checkDevServer() {
