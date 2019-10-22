@@ -1,4 +1,5 @@
 const url = require('url');
+const tag = require('./tag');
 
 var getCurrentScriptSource = function () {
     // `document.currentScript` is the most accurate way to find the current script,
@@ -41,4 +42,5 @@ module.exports = {
     getCurrentScriptSource,
     getCurrentUrlParts,
     log,
+    ...tag,
 };

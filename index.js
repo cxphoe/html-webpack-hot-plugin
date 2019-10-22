@@ -7,13 +7,22 @@ const {
     cleanCompileAssets,
 } = require('./utils/clean')
 const logger = require('./utils/logger')
+const {
+    parseHtml,
+    diffVnode,
+} = require('./lib/vnode')
+
 
 module.exports = class HtmlWebpackHotPlugin {
-    constructor() {
+    constructor(options = {}) {
         this.needReload = false
-        this.assetHashMap = {}
+        this.assetMap = {}
         this._devServer = null
         this.listened = false
+        this.options = {
+            hot: true,
+            ...options,
+        }
 
         /** @type {import('sockjs').Connection[]} */
         this.connections = []
@@ -31,10 +40,8 @@ module.exports = class HtmlWebpackHotPlugin {
 
                 this.connWrite('html-check', outputName)
 
-                // calculate hash
                 const cleanHtml = cleanCompileAssets(compilation.assets, rawHtml)
-                const hash = getHash(cleanHtml)
-                this.assetHashMap[outputName] = hash
+                this.updateAsset(outputName, cleanHtml)
 
                 // append html output name
                 const bodyEnd = rawHtml.lastIndexOf('</body>')
@@ -46,9 +53,9 @@ module.exports = class HtmlWebpackHotPlugin {
                 `
                 data.html = rawHtml.substring(0, bodyEnd) + insertHtml + rawHtml.substring(bodyEnd)
             })
-            compilation.plugin('html-webpack-plugin-after-emit', data => {
-                this.sendStats()
-            })
+            // compilation.plugin('html-webpack-plugin-after-emit', data => {
+            //     this.sendStats()
+            // })
         })
 
         compiler.plugin('done', () => {
@@ -58,6 +65,37 @@ module.exports = class HtmlWebpackHotPlugin {
                 this.listened = true
             }
         })
+    }
+
+    updateAsset(name, newHtml) {
+        // calculate hash
+        let hash = getHash(newHtml)
+        // if not hot
+        if (!this.options.hot) {
+            this.assetMap[name] = {
+                hash,
+                effect: null,
+            }
+            return
+        }
+        // calculate differences
+        let workInProgressRoot = parseHtml(newHtml)
+        if (name in this.assetMap) {
+            let oldAsset = this.assetMap[name]
+            let root = oldAsset.root
+            let effect = diffVnode(root, workInProgressRoot)
+            this.assetMap[name] = {
+                hash,
+                effect,
+                root: workInProgressRoot,
+            }
+        } else {
+            this.assetMap[name] = {
+                hash,
+                effect: null,
+                root: workInProgressRoot,
+            }
+        }
     }
 
     /**
@@ -108,7 +146,14 @@ module.exports = class HtmlWebpackHotPlugin {
             const devServer = this._devServer
 
             connections = connections || this.connections
-            devServer.sockWrite(connections, 'html-hash', this.assetHashMap)
+            let assetMap = {}
+            for (let [name, asset] of Object.entries(this.assetMap)) {
+                assetMap[name] = {
+                    hash: asset.hash,
+                    effect: asset.effect,
+                }
+            }
+            devServer.sockWrite(connections, 'html-hash', assetMap)
         }
     }
 
