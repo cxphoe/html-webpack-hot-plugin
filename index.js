@@ -131,11 +131,12 @@ module.exports = class HtmlWebpackHotPlugin {
                 return
             }
 
+            let server = this._devServer
+
             if (
-                !this._devServer.checkHost(connection.headers) ||
-                !this._devServer.checkOrigin(connection.headers)
+                server.checkHost && !server.checkHost(connection.headers)
             ) {
-                this._devServer.sockWrite([connection], 'error', 'Invalid Host/Origin header')
+                this._devServer.sockWrite([connection], 'error', 'Invalid Host header')
 
                 connection.close()
 
@@ -155,6 +156,11 @@ module.exports = class HtmlWebpackHotPlugin {
             this.sendStats([connection])
         })
 
+        if (!this._devServer.listeningApp) {
+            logger.compatError('devServer.listeningApp')
+            process.exit(1)
+        }
+
         socket.installHandlers(this._devServer.listeningApp, {
             prefix: '/sockjs-node-html',
         })
@@ -166,5 +172,11 @@ module.exports = class HtmlWebpackHotPlugin {
      */
     setDevServer(server) {
         this._devServer = server
+        for (let api of ['sockWrite']) {
+            if (!server[api]) {
+                logger.compatError(`devServer.${api}`)
+                process.exit(1)
+            }
+        }
     }
 }
