@@ -1,6 +1,6 @@
 {
     "name": "html-webpack-hot-plugin",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "description": "HtmlWebpackPlugin with hot reload",
     "main": "index.js",
     "scripts": {
@@ -15,6 +15,7 @@
     "license": "MIT",
     "dependencies": {
         "chalk": "^2.4.2",
+        "htmlparser2": "^3.3.0",
         "querystring": "^0.2.0",
         "socket-client": "^1.0.0",
         "sockjs": "^0.3.19",
