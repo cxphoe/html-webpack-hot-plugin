@@ -5,10 +5,14 @@
 When using webpack with hot module replacement, the update of html file in htmlWebpackPlugin will not trigger anything. And the notice in console will show something like "app is up to date". Refreshing the page manually is the only choice if you wanna see the latest update. And this plugin is for solving this. It will send signal to opened client when the content in htmlWebpackPlugin changes and a `full reload` will be triggered.
 
 Changes that can be hot updated:
-- attributes changes of existing dom element
+- attribute changes of existing dom elements
+- change inner text of an existing dom element
 - appending new elements to the end of an existing dom
 
-Because the script may change the dom element in html template, the hot updates of `Deletion`, `Insertion` and `Moving` are hard to implement.
+Because the script may change the dom element in html template, The following actions will not be considered for hot updates:
+- `Deletion`: Deleted elements may relate to script execution, such as `dom manipulation`, `event listening` as so on.
+- `Insertion`: It's hard to determine where to insert the new added dom elements if there are non-template elements that were added during scripts execution.
+- `Movement`: The same as `Insertion`.
 
 This is an extension of [HTMLWebpackPlugin](https://github.com/jantimon/html-webpack-plugin)
 <p style="color:red">This is a tool just used in `Development` mode.</p>
