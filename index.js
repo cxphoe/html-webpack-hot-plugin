@@ -44,14 +44,8 @@ module.exports = class HtmlWebpackHotPlugin {
                 this.updateAsset(outputName, cleanHtml)
 
                 // append html output name
-                const bodyEnd = rawHtml.lastIndexOf('</body>')
-                const insertHtml = `
-                    <!-- [begin] -->
-                    <!-- the following content is added by \`html-webpack-hot-plugin\` -->
-                    <div id='html-webpack-hot-plugin' style="display:none;">${outputName}</div>
-                    <!-- [end] -->
-                `
-                data.html = rawHtml.substring(0, bodyEnd) + insertHtml + rawHtml.substring(bodyEnd)
+                const injectedHtml = rawHtml.replace(/(<html[^>]*)>/, `$1 data-hwhp-pagename=${outputName}>`)
+                data.html = injectedHtml
             })
             // compilation.plugin('html-webpack-plugin-after-emit', data => {
             //     this.sendStats()
