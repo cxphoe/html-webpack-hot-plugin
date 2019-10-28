@@ -2,25 +2,27 @@ var tagKey = '__hwhp';
 
 /**
  * tag all elements belonging to the HTML template
- * @param {Element} element
+ * @param {Node} node
  */
-var tagAllDomElement = function (element) {
-    element[tagKey] = true
-    for (let child of element.children) {
-        tagAllDomElement(child)
+var tagAllDomNode = function (node) {
+    node[tagKey] = true
+    if (node.childNodes) {
+        for (let child of node.childNodes) {
+            tagAllDomNode(child)
+        }
     }
 };
 
 /**
- * tell if a element belongs to the HTML template
- * @param {Element} element
+ * tell if a node belongs to the HTML template
+ * @param {Node}} node
  */
-var isTempalteElement = function (element) {
-    return !!element[tagKey];
+var isTempalteNode = function (node) {
+    return !!node[tagKey];
 }
 
 module.exports = {
-    tagAllDomElement,
-    isTempalteElement,
+    tagAllDomNode,
+    isTempalteNode,
 }
 

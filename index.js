@@ -35,7 +35,7 @@ module.exports = class HtmlWebpackHotPlugin {
         this.addClientEntry(compiler)
 
         compiler.plugin('compilation', (compilation) => {
-            compilation.plugin('html-webpack-plugin-before-html-processing', data => {
+            compilation.plugin('html-webpack-plugin-after-html-processing', data => {
                 const { html: rawHtml, outputName } = data
 
                 this.connWrite('html-check', outputName)
